@@ -1,115 +1,51 @@
-import { json, useLoaderData } from "@remix-run/react";
-import { useState } from "react";
-import { ClientOnly } from "remix-utils/client-only";
-import AttackDistributionGraph from "~/components/dashboard/AttackDistributionGraph";
-import AttackSourcesGraph from "~/components/dashboard/AttackSourcesGraph";
+import { LoaderFunction } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import { Fragment, useState } from "react";
 
-export async function loader() {
-  const sourceData = {
-    labels: ["sources"],
-    datasets: [
-      {
-        barPercentage: 0.125,
-        label: "Attack Per Public IP Address",
-        backgroundColor: "#fc4825",
-        data: 0,
-      },
-    ],
-  };
+import Button from "~/components/Button";
+import SelectButton from "~/components/SelectButton";
 
-  const distributionData = {
-    labels: ["SQLi", "XSS", "Unauthorization", "Anonymization", "Geolocation"],
-    datasets: [
-      {
-        label: "Attack Distribution",
-        data: ["", "", "", "", ""],
-        backgroundColor: [
-          "rgb(92, 4, 138)", // Sqli
-          "rgb(245, 234, 20)", // XSS
-          "rgb(245, 108, 144)", // Unauthorized Access
-          "rgb(47, 62, 89)", // Anonymization
-          "rgb(0, 128, 128)", // Banned geolocation
-        ],
-        hoverOffset: 4,
-      },
-    ],
-  };
+import { views } from "~/constants/dashboard";
+import { DashboardComponentParams } from "~/types/DashboardTypes";
 
-  return json({ sourceData, distributionData });
-}
+export const loader: LoaderFunction = async ({ request }) => {
+  return { protocols: [], statistics: [], ndpis: [], risks: [], traffics: [] };
+};
 
 export default function Dashboard() {
-  const { sourceData, distributionData } = useLoaderData<typeof loader>();
-  const [stateC, setStateC] = useState({
-    services: 0,
-    lastUpdate: 0,
-    totalTransactions: 0,
-    allowedTransactions: 0,
-    blockedTransactions: 0,
-    card_informations: 0,
-    vulnerabilityScores: 0,
-  });
+  const data: DashboardComponentParams = useLoaderData<typeof loader>();
 
-  const stateComponents = [
-    {
-      title: "Blocked",
-      state: "blockedTransactions",
-      unit: "Transactions",
-    },
-    {
-      title: "Allowed",
-      state: "allowedTransactions",
-      unit: "Transactions",
-    },
-    {
-      title: "Total",
-      state: "totalTransactions",
-      unit: "Transactions",
-    },
-    {
-      title: "Latest Update",
-      state: "lastUpdate",
-      unit: "",
-    },
-    {
-      title: "Deployed at",
-      state: "",
-      unit: "",
-    },
-  ];
+  const [selectedView, setSelectedViews] = useState(views[0]);
 
   return (
     <div className="py-6 px-4 w-full flex flex-col gap-6">
       <h1 className="header">Dashboard</h1>
 
       <div className="flex flex-row gap-4 w-full">
-        {stateComponents.map((sc, i) => (
-          <div
+        {views.map((v, i) => (
+          <SelectButton
             key={i}
-            className="flex-1 space-y-2 border-orange-main border-2 p-4"
-          >
-            <p className="font-semibold text-2xl font-fira-sans">{sc.title}</p>
-            <p className="text-lg">
-              {(stateC as any)[sc.state]} {sc.unit}
-            </p>
-          </div>
+            title={v.name}
+            onClick={() => setSelectedViews(v)}
+            isSelected={selectedView.name == v.name}
+          />
         ))}
       </div>
 
-      <div className="w-full flex gap-4">
-        <ClientOnly>
-          {() => (
-            <>
-              <div className="flex-1 rounded-md shadow-lg">
-                <AttackSourcesGraph data={sourceData} />
-              </div>
+      <div id="view" className="">
+        {selectedView.component != null && (
+          <Fragment>{selectedView.component(data as any)}</Fragment>
+        )}
 
-              <div className="flex-1 rounded-md shadow-lg">
-                <AttackDistributionGraph data={distributionData} />
-              </div>
-            </>
-          )}
-        </ClientOnly>
+        {selectedView.name == "Risk Stats" && (
+          <div className="flex gap-2 mt-4">
+            <p className="font-bold">NOTE: </p>
+            <p className="text-justify text-wrap">
+              as one flow can have multiple risks set, the sum of the last
+              column can exceed the number of flows with risks.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
