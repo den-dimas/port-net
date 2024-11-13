@@ -1,28 +1,68 @@
+import { Fragment, useEffect, useState } from "react";
 import { LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { Fragment, useState } from "react";
+import { Socket, Subscriber } from "zeromq";
 
-import Button from "~/components/Button";
 import SelectButton from "~/components/SelectButton";
 
-import { views } from "~/constants/dashboard";
+import { dashboardCategories } from "~/constants/categories";
 import { DashboardComponentParams } from "~/types/DashboardTypes";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  return { protocols: [], statistics: [], ndpis: [], risks: [], traffics: [] };
+  const socket = new Subscriber();
+  socket.connect("tcp://192.168.1.102:56");
+  socket.subscribe("");
+
+  return {
+    data: { protocols: [], statistics: [], ndpis: [], risks: [], traffics: [] },
+    socket,
+  };
 };
 
 export default function Dashboard() {
-  const data: DashboardComponentParams = useLoaderData<typeof loader>();
+  const { data, socket } = useLoaderData<typeof loader>();
 
-  const [selectedView, setSelectedViews] = useState(views[0]);
+  const [selectedView, setSelectedViews] = useState(dashboardCategories[0]);
+
+  const [messages, setMessages] = useState<string[]>([]);
+  const [status, setStatus] = useState("disconnected");
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:5000");
+
+    ws.onopen = () => {
+      setStatus("connected");
+      console.log("Connected to WebSocket");
+    };
+
+    ws.onmessage = (event) => {
+      setMessages((prev) => [...prev, event.data]);
+    };
+
+    ws.onclose = () => {
+      setStatus("disconnected");
+      console.log("Disconnected from WebSocket");
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      setStatus("error");
+    };
+
+    console.log(messages);
+
+    // Cleanup on unmount
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   return (
     <div className="py-6 px-4 w-full flex flex-col gap-6">
       <h1 className="header">Dashboard</h1>
 
       <div className="flex flex-row gap-4 w-full">
-        {views.map((v, i) => (
+        {dashboardCategories.map((v, i) => (
           <SelectButton
             key={i}
             title={v.name}

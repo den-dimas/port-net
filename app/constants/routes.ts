@@ -1,6 +1,6 @@
-import DashboardIcon from "~/components/sidebarIcon/DashboardIcon";
-import EventsIcon from "~/components/sidebarIcon/EventsIcon";
-import ConfigurationIcon from "~/components/sidebarIcon/ConfigurationIcon";
+import DashboardIcon from "~/components/sidebar/sidebarIcon/DashboardIcon";
+import EventsIcon from "~/components/sidebar/sidebarIcon/EventsIcon";
+import ConfigurationIcon from "~/components/sidebar/sidebarIcon/ConfigurationIcon";
 
 export const sidebar = [
   {
