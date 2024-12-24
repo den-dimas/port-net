@@ -1,20 +1,30 @@
-import { ActionFunction, json, LoaderFunction } from "@remix-run/node";
+import { ActionFunction, json, LoaderFunction, redirect } from "@remix-run/node";
 import { useLoaderData, useSubmit } from "@remix-run/react";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
-import { ConfigData, configSessionStorage, getConfig, saveConfig } from "~/utils/session.server";
+import { ConfigData, getConfig, loginSessionStorage, saveConfig } from "~/utils/session.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
+  const session = await loginSessionStorage.getSession(request.headers.get("Cookie"));
+
+  if (!session || !session.data.user) return redirect("/login");
+
   const config = await getConfig(request);
 
-  const session = await configSessionStorage.getSession(request.headers.get("Cookie"));
-
-  if (!session.data) {
-    const cookie = await saveConfig(config, request);
-    return json({ config }, { headers: { "Set-Cookie": cookie } });
+  if (!config) {
+    const newConfig = {
+      wsEnabled: true,
+      notificationsEnabled: true,
+      aiEnabled: false,
+      email: "",
+      ipAddress: "",
+      port: "",
+      interval: "",
+    };
+    const cookie = await saveConfig(newConfig, request);
+    return redirect("/configurations", { headers: { "Set-Cookie": cookie } });
   }
 
   return { config };

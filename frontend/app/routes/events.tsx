@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LoaderFunction } from "@remix-run/node";
+import { LoaderFunction, redirect } from "@remix-run/node";
 import { json, useLoaderData } from "@remix-run/react";
 
 import { eventsCategories } from "~/constants/categories";
@@ -7,17 +7,22 @@ import { eventsCategories } from "~/constants/categories";
 import SelectButton from "~/components/SelectButton";
 import AuthorizedEventTable from "~/components/events/AuthorizedEventTable";
 
-import { getConfig } from "~/utils/session.server";
+import { getConfig, loginSessionStorage } from "~/utils/session.server";
 import emailjs from "emailjs-com";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const config = await getConfig(request);
+  const session = await loginSessionStorage.getSession(request.headers.get("Cookie"));
 
-  return json({ config });
+  if (!session || !session.data.user) return redirect("/login");
+
+  const config = await getConfig(request);
+  const env = process.env;
+
+  return json({ config, env });
 };
 
 export default function Events() {
-  const { config } = useLoaderData<typeof loader>();
+  const { config, env } = useLoaderData<typeof loader>();
 
   const [selectedView, setSelectedViews] = useState(eventsCategories[0]);
   const [messages, setMessages] = useState<any>({});
@@ -47,7 +52,9 @@ export default function Events() {
 
     console.log("Sending email with params:", templateParams);
 
-    emailjs.send("service_sy9eq0o", "template_oo6zqks", templateParams, "JBuCRj6OKhUoSVS9P").then(
+    const { EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, EMAIL_USER_ID } = env;
+
+    emailjs.send(EMAIL_SERVICE_ID || "", EMAIL_TEMPLATE_ID || "", templateParams, EMAIL_USER_ID || "").then(
       (response) => {
         console.log("Email sent successfully:", response.status, response.text);
       },
@@ -61,13 +68,14 @@ export default function Events() {
     try {
       if (!config.aiEnabled) {
         sendEmail(riskData, "Analysis is disabled!");
+        return;
       }
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer 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`,
+          Authorization: `Bearer ${env.OPENAI_TOKEN}`,
         },
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
@@ -130,10 +138,10 @@ export default function Events() {
       const data = JSON.parse(event.data);
       setMessages(data);
 
-      const risks = data.known_flows.filter((d: any) => d.info_risk.score >= 8);
+      const risks = data.known_flows.filter((d: any) => d.info_risk.score >= 150 && d.hostname !== "api.openai.com");
 
       if (risks.length != riskPackets.length) {
-        setRiskPackets((prev: any) => risks);
+        setRiskPackets(risks);
       }
     };
 
@@ -151,25 +159,8 @@ export default function Events() {
    **/
   useEffect(() => {
     if (rendered >= 1) {
-      const emailReady = localStorage.getItem("emailReady");
-
-      if (!emailReady) {
-        localStorage.setItem("emailReady", JSON.stringify({ time: Date.now() }));
-
-        console.log(config.notificationsEnabled, riskPackets.length);
-        if (config.notificationsEnabled && riskPackets.length) {
-          analyzeRiskWithOpenAI(riskPackets);
-          console.log("Analyze this day!");
-        }
-      } else {
-        const t = JSON.parse(emailReady).time;
-        const dt = Date.now() - t;
-        const oneDay = 24 * 60 * 60 * 1000;
-
-        if (dt > oneDay && config.notificationsEnabled && riskPackets.length) {
-          analyzeRiskWithOpenAI(riskPackets);
-          console.log("Analyze this day!");
-        }
+      if (config.notificationsEnabled && riskPackets.length && config.email) {
+        analyzeRiskWithOpenAI(riskPackets[riskPackets.length - 1]);
       }
     }
 

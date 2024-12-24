@@ -18,10 +18,13 @@ export default function SidebarItem({ name, logo, link }: sidebarItem) {
           }`
         }
       >
-        <Fragment key={name}>{logo()}</Fragment>
+        <div className="w-[30%] h-[30%]">
+          <Fragment key={name}>{logo()}</Fragment>
+        </div>
 
         <p>{name}</p>
       </NavLink>
     </div>
   );
 }
+

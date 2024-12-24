@@ -1,14 +1,18 @@
 import { Fragment, useEffect, useState } from "react";
-import { LoaderFunction } from "@remix-run/node";
+import { LoaderFunction, redirect } from "@remix-run/node";
 import { json, useLoaderData } from "@remix-run/react";
 
 import SelectButton from "~/components/SelectButton";
 
 import { dashboardCategories } from "~/constants/categories";
 import Loading from "~/components/Loading";
-import { getConfig } from "~/utils/session.server";
+import { getConfig, loginSessionStorage } from "~/utils/session.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
+  const session = await loginSessionStorage.getSession(request.headers.get("Cookie"));
+
+  if (!session || !session.data.user) return redirect("/login");
+
   const config = await getConfig(request);
   return json({ config });
 };

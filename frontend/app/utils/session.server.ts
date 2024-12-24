@@ -14,10 +14,22 @@ export const configSessionStorage = createCookieSessionStorage({
   cookie: {
     name: "__config",
     httpOnly: true,
-    // maxAge: 60 * 60 * 24 * 30,
+    maxAge: 99983090,
     path: "/",
     sameSite: "lax",
-    secrets: ["@awd9s@12_!32423Q4(as*22Q@<dL:ASWA)(W2@", "W8@&@!9sdkncuw&@0`2`awdas``dfs`s12s&&**&@^!32"],
+    secrets: [process.env.COOKIE_SECRET1 || "", process.env.COOKIE_SECRET2 || ""],
+    secure: process.env.NODE_ENV === "production",
+  },
+});
+
+export const loginSessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: "__session",
+    httpOnly: true,
+    maxAge: 99983090,
+    path: "/",
+    sameSite: "lax",
+    secrets: [process.env.COOKIE_SECRET1 || "", process.env.COOKIE_SECRET2 || ""],
     secure: process.env.NODE_ENV === "production",
   },
 });
@@ -43,7 +55,7 @@ export async function saveConfig(config: ConfigData, request: Request) {
     session.set(key, value);
   });
 
-  return configSessionStorage.commitSession(session);
+  return configSessionStorage.commitSession(session, { expires: new Date(99983090) });
 }
 
 export async function clearConfig(request: Request) {

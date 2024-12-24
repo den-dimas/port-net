@@ -1,22 +1,8 @@
 export default function ConfigurationIcon() {
   return (
-    <svg
-      version="1.1"
-      id="Capa_1"
-      xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-      width="64px"
-      height="64px"
-      viewBox="0 0 93.5 93.5"
-      xmlSpace="preserve"
-      className="w-[30%] h-[30%]"
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 96 96" className="">
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-      <g
-        id="SVGRepo_tracerCarrier"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      ></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
       <g id="SVGRepo_iconCarrier">
         <g>
           <g>
@@ -27,3 +13,4 @@ export default function ConfigurationIcon() {
     </svg>
   );
 }
+
