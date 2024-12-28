@@ -93,7 +93,6 @@ export default function Events() {
               )}`,
             },
           ],
-          max_tokens: 150,
         }),
       });
 
@@ -138,7 +137,11 @@ export default function Events() {
       const data = JSON.parse(event.data);
       setMessages(data);
 
-      const risks = data.known_flows.filter((d: any) => d.info_risk.score >= 150 && d.hostname !== "api.openai.com");
+      const priorityScore = parseInt(config.priority, 10);
+
+      const risks = data.known_flows.filter(
+        (d: any) => d.info_risk.score >= priorityScore && d.hostname !== "api.openai.com"
+      );
 
       if (risks.length != riskPackets.length) {
         setRiskPackets(risks);

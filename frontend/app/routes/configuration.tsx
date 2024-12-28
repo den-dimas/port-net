@@ -22,6 +22,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       ipAddress: "",
       port: "",
       interval: "",
+      priority: "50",
     };
     const cookie = await saveConfig(newConfig, request);
     return redirect("/configurations", { headers: { "Set-Cookie": cookie } });
@@ -40,6 +41,7 @@ export const action: ActionFunction = async ({ request }) => {
     ipAddress: formData.get("ipAddress") as string,
     port: formData.get("port") as string,
     interval: formData.get("interval") as string,
+    priority: formData.get("priority") as string,
   };
 
   const cookie = await saveConfig(config, request);
@@ -126,6 +128,45 @@ export default function Configuration() {
             onChange={(e) => handleConfigChange("email", e.target.value)}
             className="border-2 focus:border-orange-main focus:ring-orange-main shadow-none border-black focus-visible:ring-0 h-12"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="font-medium text-sm">Notification Priority</Label>
+
+          <div className="flex items-center gap-2 p-2 rounded-md text-sm">
+            <button
+              onClick={() => handleConfigChange("priority", "50")}
+              className={`flex items-center justify-center px-4 py-2 rounded-md border-[1px] border-black hover:bg-black hover:text-white duration-200 ease-in-out hover:font-bold ${
+                config.priority === "50" ? "bg-orange-main text-white font-bold" : "text-black "
+              }`}
+            >
+              Low
+            </button>
+            <button
+              onClick={() => handleConfigChange("priority", "100")}
+              className={`flex items-center justify-center px-4 py-2 rounded-md border-[1px] border-black hover:bg-black hover:text-white duration-200 ease-in-out hover:font-bold ${
+                config.priority === "100" ? "bg-orange-main text-white font-bold" : "text-black "
+              }`}
+            >
+              Medium
+            </button>
+            <button
+              onClick={() => handleConfigChange("priority", "150")}
+              className={`flex items-center justify-center px-4 py-2 rounded-md border-[1px] border-black hover:bg-black hover:text-white duration-200 ease-in-out hover:font-bold ${
+                config.priority === "150" ? "bg-orange-main text-white font-bold" : "text-black "
+              }`}
+            >
+              High
+            </button>
+            <button
+              onClick={() => handleConfigChange("priority", "200")}
+              className={`flex items-center justify-center px-4 py-2 rounded-md border-[1px] border-black hover:bg-black hover:text-white duration-200 ease-in-out hover:font-bold ${
+                config.priority === "200" ? "bg-orange-main text-white font-bold" : "text-black "
+              }`}
+            >
+              Extreme
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

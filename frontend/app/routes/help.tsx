@@ -4,12 +4,6 @@ import { Fragment } from "react/jsx-runtime";
 import { sidebar } from "~/constants/routes";
 import { loginSessionStorage } from "~/utils/session.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await loginSessionStorage.getSession(request.headers.get("Cookie"));
-
-  if (!session || !session.data.user) return redirect("/login");
-}
-
 export default function Help() {
   return (
     <div className="py-6 px-4 flex flex-col gap-6 text-xs w-full">

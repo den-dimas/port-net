@@ -8,6 +8,7 @@ export type ConfigData = {
   ipAddress: string;
   port: string;
   interval: string;
+  priority: string;
 };
 
 export const configSessionStorage = createCookieSessionStorage({
@@ -45,6 +46,7 @@ export async function getConfig(request: Request) {
     ipAddress: session.get("ipAddress") ?? "",
     port: session.get("port") ?? "",
     interval: session.get("interval") ?? "1",
+    priority: session.get("priority") ?? "50",
   };
 }
 
