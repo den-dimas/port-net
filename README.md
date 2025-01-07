@@ -1,6 +1,4 @@
-![Logo](./frontend/app/assets/logo-portnet.png)
-
-# Port-Net
+# Port-Monitor
 
 ## Prerequisites
 Ensure you have the following installed before proceeding:
